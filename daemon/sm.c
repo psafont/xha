@@ -403,9 +403,6 @@ sm_initialize(
         if (ret)
         {
             worker_thread = 0;
-#if 0
-            pthread_kill(smvar.sm_thread, SIGKILL);
-#endif
             ret = MTC_ERROR_SM_PTHREAD;
             break;
         }
@@ -444,26 +441,6 @@ sm_initialize(
         }
 
         smvar.terminate = TRUE;
-
-#if 0
-        // wait for thread termination
-        if ((ret = pthread_join(worker_thread, NULL)))
-        {
-            if (worker_thread)
-            {
-                pthread_kill(worker_thread, SIGKILL);
-                worker_thread = 0;
-            }
-        }
-        if ((ret = pthread_join(smvar.sm_thread, NULL)))
-        {
-            if (smvar.sm_thread)
-            {
-                pthread_kill(smvar.sm_thread, SIGKILL);
-                smvar.sm_thread = 0;
-            }
-        }
-#endif
 
         ret = MTC_SUCCESS;
 
@@ -585,27 +562,6 @@ sm_open_objects()
 MTC_STATIC void
 sm_cleanup_objects()
 {
-#if 0
-    MTC_S32 index;
-
-    for (index = 0; objects[index].handle; index++)
-    {
-        if (objects[index].callback)
-        {
-            com_deregister_callback(*(objects[index].handle), objects[index].callback);
-        }
-
-        if (*(objects[index].handle) != HA_COMMON_OBJECT_INVALID_HANDLE_VALUE)
-        {
-            if (!com_close(*(objects[index].handle)))
-            {
-                objects[index].handle = HA_COMMON_OBJECT_INVALID_HANDLE_VALUE;
-            }
-        }
-    }
-
-    return;
-#endif
 }
 
 
@@ -882,9 +838,6 @@ rendezvous(
                         "SM: rendezvousing phase on statefile[%d] = %d\n", index,
                         (index == _my_index)? psm->phase: psf->sm_phase[index]);
                 }
-#if 0
-                assert(FALSE);
-#endif
             }
             com_reader_unlock(sf_object);
             com_reader_unlock(hb_object);
@@ -1558,14 +1511,9 @@ process_join_request()
     com_reader_lock(hb_object, (void **) &phb);
     com_reader_lock(sf_object, (void **) &psf);
 
-#if 0
-    if (psm->phase != SM_PHASE_STARTING)
-    {
-#else
     // If liveset is empty, join is handled in Start Criteria.
     if (!is_empty_liveset(psm->current_liveset))
     {
-#endif
         for (index = 0; _is_configured_host(index); index++)
         {
             // If Node i is requesting to join,
@@ -2349,13 +2297,10 @@ wait_until_all_hosts_have_consistent_view(
                     remote_hbdomain_onsf, remote_sfdomain_onhb,
                     removedhost, tmp_hostmap;
 
-#if 1   // TBD - do we need this timeout?
+    // TBD - do we need this timeout?
     MTC_CLOCK       start = _getms();
 
     while (!consistent && _getms() - start < timeout)
-#else
-    while (!consistent)
-#endif
     {
         consistent = TRUE;
 
