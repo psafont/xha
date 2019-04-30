@@ -23,11 +23,11 @@
 //
 //      Keiichi Koyama
 //
-//  CREATION DATE: 
+//  CREATION DATE:
 //
 //      March 17, 2008
 //
-//   
+//
 
 //
 //
@@ -601,7 +601,7 @@ sm_sm_updated(
     void *buffer)
 {
     PCOM_DATA_SM    psm = buffer;
-    
+
     if (psm->fencing == FENCING_DISARM_REQUESTED)
     {
         smvar.fencing = psm->fencing = FENCING_DISARMED;
@@ -611,7 +611,7 @@ sm_sm_updated(
     {
         sm_send_signals_sm_hb_sf(TRUE, FALSE, FALSE);
     }
-    
+
     smvar.SR2 = psm->SR2;
 }
 

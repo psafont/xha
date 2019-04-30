@@ -26,11 +26,11 @@
 //
 //      Shinji Matsumoto
 //
-//  CREATION DATE: 
+//  CREATION DATE:
 //
 //      Mar 6, 2008
 //
-//   
+//
 
 
 #include <stdio.h>
@@ -76,7 +76,7 @@
 #define PRIVCMD_PATH "/proc/xen/privcmd"
 #define MAX_WATCHDOG_INSTANCE 8
 
-typedef struct watchdog_instance 
+typedef struct watchdog_instance
 {
     char label[256];
     MTC_U32 id;
@@ -148,7 +148,7 @@ static MTC_BOOLEAN initialized = FALSE;
 //      addr - addr to lock
 //      len - size of area
 //
-//          
+//
 //  RETURN VALUE:
 //
 //      0 - success
@@ -161,9 +161,9 @@ static MTC_BOOLEAN initialized = FALSE;
 //
 
 
-MTC_STATIC  int 
+MTC_STATIC  int
 do_lock_pages(
-    void *addr, 
+    void *addr,
     size_t len)
 {
     int e = 0;
@@ -173,9 +173,9 @@ do_lock_pages(
     return e;
 }
 
-MTC_STATIC  void 
+MTC_STATIC  void
 do_unlock_pages(
-    void *addr, 
+    void *addr,
     size_t len)
 {
     void *laddr = (void *)((unsigned long)addr & PAGE_MASK);
@@ -183,9 +183,9 @@ do_unlock_pages(
     munlock(laddr, llen);
 }
 
-MTC_STATIC  int 
+MTC_STATIC  int
 lock_pages(
-    void *addr, 
+    void *addr,
     size_t len)
 {
     int e = 0;
@@ -199,9 +199,9 @@ lock_pages(
 
 
 
-MTC_STATIC  void 
+MTC_STATIC  void
 unlock_pages(
-    void *addr, 
+    void *addr,
     size_t len)
 {
 #ifdef UNLOCK_PAGES_EVERYTIME
@@ -273,10 +273,10 @@ do_watchdog_close(void)
 MTC_STATIC  MTC_STATUS
 do_hypercall(privcmd_hypercall_t *hypercall, void *arg, size_t argsize, int *ioctl_ret, MTC_STATUS currentstatus)
 {
-  
+
     int ret;
 
-    if (hypercall_fd == -1) 
+    if (hypercall_fd == -1)
     {
         hypercall_fd = open(PRIVCMD_PATH, O_RDWR);
         if (fist_on("wd.open")) {
@@ -286,7 +286,7 @@ do_hypercall(privcmd_hypercall_t *hypercall, void *arg, size_t argsize, int *ioc
             errno = 999;
         }
     }
-    if (hypercall_fd == -1) 
+    if (hypercall_fd == -1)
     {
         if (currentstatus == MTC_SUCCESS)
         {
@@ -294,7 +294,7 @@ do_hypercall(privcmd_hypercall_t *hypercall, void *arg, size_t argsize, int *ioc
         }
         return MTC_ERROR_WD_OPEN;
     }
-    if (lock_pages(arg, argsize) != 0) 
+    if (lock_pages(arg, argsize) != 0)
     {
         if (currentstatus == MTC_SUCCESS)
         {
@@ -302,7 +302,7 @@ do_hypercall(privcmd_hypercall_t *hypercall, void *arg, size_t argsize, int *ioc
         }
         return MTC_ERROR_WD_INSUFFICIENT_RESOURCE;
     }
-    if (lock_pages(hypercall, sizeof(privcmd_hypercall_t)) != 0) 
+    if (lock_pages(hypercall, sizeof(privcmd_hypercall_t)) != 0)
     {
         if (currentstatus == MTC_SUCCESS)
         {
@@ -312,7 +312,7 @@ do_hypercall(privcmd_hypercall_t *hypercall, void *arg, size_t argsize, int *ioc
         unlock_pages(arg, argsize);
         return MTC_ERROR_WD_INSUFFICIENT_RESOURCE;
     }
-    if (fist_on("wd.instance.unavailable")) 
+    if (fist_on("wd.instance.unavailable"))
     {
         log_internal(MTC_LOG_INFO, "WD: FIST wd.instance.unavaliable is on\n");
         ret = -999;
@@ -385,7 +385,7 @@ do_watchdog_hypercall(uint32_t *id, uint32_t timeout, MTC_STATUS currentstatus)
 
     if (!mlock_done)
     {
-        if (do_lock_pages(&arg, sizeof(arg)) != 0) 
+        if (do_lock_pages(&arg, sizeof(arg)) != 0)
         {
             if (currentstatus == MTC_SUCCESS)
             {
@@ -393,7 +393,7 @@ do_watchdog_hypercall(uint32_t *id, uint32_t timeout, MTC_STATUS currentstatus)
             }
             return MTC_ERROR_WD_INSUFFICIENT_RESOURCE;
         }
-        if (do_lock_pages(&hypercall, sizeof(hypercall)) != 0) 
+        if (do_lock_pages(&hypercall, sizeof(hypercall)) != 0)
         {
             if (currentstatus == MTC_SUCCESS)
             {
@@ -410,7 +410,7 @@ do_watchdog_hypercall(uint32_t *id, uint32_t timeout, MTC_STATUS currentstatus)
     hypercall.arg[1] = (__u64) (unsigned int) &arg;  // pointer to u64
     arg.id = *id;
     arg.timeout = timeout;
-    
+
     ret = do_hypercall(&hypercall, &arg, sizeof(arg), &hypercall_ret, currentstatus);
     if (ret != MTC_SUCCESS)
     {
@@ -421,13 +421,13 @@ do_watchdog_hypercall(uint32_t *id, uint32_t timeout, MTC_STATUS currentstatus)
     // if id == 0 , hypercall_ret is new id should be > 0
     //
 
-    if (*id == 0) 
+    if (*id == 0)
     {
-        if (hypercall_ret > 0) 
+        if (hypercall_ret > 0)
         {
             *id = hypercall_ret;
         }
-        else 
+        else
         {
             if (currentstatus == MTC_SUCCESS)
             {
@@ -467,7 +467,7 @@ MTC_STATIC  MTC_STATUS
 
 do_domain_shutdown_self(MTC_STATUS currentstatus)
 {
-  
+
     MTC_STATUS ret;
     int hypercall_ret;
 
@@ -477,7 +477,7 @@ do_domain_shutdown_self(MTC_STATUS currentstatus)
 
     if (!mlock_done)
     {
-        if (do_lock_pages(&arg, sizeof(arg)) != 0) 
+        if (do_lock_pages(&arg, sizeof(arg)) != 0)
         {
             if (currentstatus == MTC_SUCCESS)
             {
@@ -486,7 +486,7 @@ do_domain_shutdown_self(MTC_STATUS currentstatus)
             // ignore failure
             // return MTC_ERROR_WD_INSUFFICIENT_RESOURCE;
         }
-        if (do_lock_pages(&hypercall, sizeof(hypercall)) != 0) 
+        if (do_lock_pages(&hypercall, sizeof(hypercall)) != 0)
         {
             if (currentstatus == MTC_SUCCESS)
             {
@@ -504,7 +504,7 @@ do_domain_shutdown_self(MTC_STATUS currentstatus)
     hypercall.arg[1] = (__u64) (unsigned int) &arg;  // pointer to u64
     arg.domain_id = 0;
     arg.reason = 1; // reboot
-    
+
     log_fsync(); // flush logfile
 
     ret = do_hypercall(&hypercall, &arg, sizeof(arg), &hypercall_ret, currentstatus);
@@ -552,7 +552,7 @@ check_watchdog_timeout(void)
                         instance[wdi]->id, instance[wdi]->label);
 
             log_fsync(); // flush logfile
-            
+
             if (watchdog_mode != WATCHDOG_MODE_NONE)
             {
                 assert(FALSE);
@@ -682,7 +682,7 @@ record_watchdog_instatnce(void)
 //      label - name label of the watchdog owner (for log only)
 //      watchdog_handle: handle for the watchdog timer instance
 //
-//          
+//
 //  RETURN VALUE:
 //
 //      0 - success
@@ -701,7 +701,7 @@ watchdog_create(
 {
     WATCHDOG_INSTANCE *new;
     MTC_STATUS ret = MTC_SUCCESS;
-    
+
 
     pthread_mutex_lock(&watchdog_mutex);
 
@@ -710,7 +710,7 @@ watchdog_create(
     // config
     //
 
-    if (initialized == FALSE) 
+    if (initialized == FALSE)
     {
         if (!strcmp(_wd_mode, "HYPERVISOR"))
         {
@@ -724,7 +724,7 @@ watchdog_create(
         {
             watchdog_mode = WATCHDOG_MODE_NONE;
         }
-        switch (watchdog_mode) 
+        switch (watchdog_mode)
         {
         case WATCHDOG_MODE_HYPERVISOR:
             log_message(MTC_LOG_INFO, "WD: watchdog mode = HYPERVISOR.\n");
@@ -740,27 +740,27 @@ watchdog_create(
             watchdog_mode = WATCHDOG_MODE_HYPERVISOR;
             break;
         }
-        
+
         initialized = TRUE;
     }
 
-    if (label == NULL) 
+    if (label == NULL)
     {
         label = "(none)";
     }
 
     new = malloc(sizeof(WATCHDOG_INSTANCE));
-    if (new == NULL) 
+    if (new == NULL)
     {
         log_internal(MTC_LOG_ERR, "WD: cannnot malloc size = %d.\n", sizeof(WATCHDOG_INSTANCE));
         ret = MTC_ERROR_WD_INSUFFICIENT_RESOURCE;
         goto error_return;
     }
-    if (strlen(label) < sizeof(new->label)) 
+    if (strlen(label) < sizeof(new->label))
     {
         strcpy(new->label, label);
-    } 
-    else 
+    }
+    else
     {
         strncpy(new->label, label, sizeof(new->label) - 1);
         new->label[sizeof(new->label) - 1] = '\0';
@@ -771,13 +771,13 @@ watchdog_create(
     new->status = MTC_SUCCESS;
 
     ret = do_watchdog_hypercall(&(new->id), WATCHDOG_TIMEOUT_MAX, MTC_SUCCESS);
-    if (ret == MTC_SUCCESS) 
+    if (ret == MTC_SUCCESS)
     {
-        log_message(MTC_LOG_INFO, "WD: (%s) success label=%s id=%d.\n", __func__, new->label, new->id);        
+        log_message(MTC_LOG_INFO, "WD: (%s) success label=%s id=%d.\n", __func__, new->label, new->id);
         *watchdog_handle = (WATCHDOG_HANDLE *)new;
         instance[instance_num++] = new;
     }
-    else 
+    else
     {
         log_message(MTC_LOG_WARNING, "WD: (%s) label=%s failed.\n", __func__, label);
         free(new);
@@ -808,7 +808,7 @@ watchdog_create(
 //
 //      watchdog_handle: handle for the watchdog timer instance.
 //
-//          
+//
 //  RETURN VALUE:
 //
 //      0 - success
@@ -831,20 +831,20 @@ watchdog_close(
     MTC_U32 found = FALSE;
 
     pthread_mutex_lock(&watchdog_mutex);
-    if (watchdog_handle == NULL) 
+    if (watchdog_handle == NULL)
     {
-        log_message(MTC_LOG_WARNING, "WD: (%s) invalid watchdog_handle.\n", __func__);        
+        log_message(MTC_LOG_WARNING, "WD: (%s) invalid watchdog_handle.\n", __func__);
         ret = MTC_ERROR_WD_INVALID_HANDLE;
         goto error_return;
     }
-    log_message(MTC_LOG_INFO, "WD: (%s) label=%s stopping watchdog timer.\n", __func__, w->label);        
+    log_message(MTC_LOG_INFO, "WD: (%s) label=%s stopping watchdog timer.\n", __func__, w->label);
     ret = do_watchdog_hypercall(&(w->id), 0, MTC_SUCCESS);
-    if (ret != MTC_SUCCESS) 
+    if (ret != MTC_SUCCESS)
     {
         // ignore error just logging.
-        log_message(MTC_LOG_WARNING, "WD: (%s) label=%s failed.\n", __func__, w->label);        
+        log_message(MTC_LOG_WARNING, "WD: (%s) label=%s failed.\n", __func__, w->label);
     }
-    log_message(MTC_LOG_INFO, "WD: (%s) label=%s watchdog timer has been stopped successfully.\n", __func__, w->label);        
+    log_message(MTC_LOG_INFO, "WD: (%s) label=%s watchdog timer has been stopped successfully.\n", __func__, w->label);
     for (wdi = 0; wdi < instance_num; wdi++) {
         if (instance[wdi] == w)
         {
@@ -855,10 +855,10 @@ watchdog_close(
             break;
         }
     }
-    if (!found) 
+    if (!found)
     {
         // ignore error just logging.
-        log_message(MTC_LOG_WARNING, "WD: (%s) label=%s not found.\n", __func__, w->label);        
+        log_message(MTC_LOG_WARNING, "WD: (%s) label=%s not found.\n", __func__, w->label);
     }
     free(w);
 
@@ -884,7 +884,7 @@ watchdog_close(
 //
 //      Set new timout value for the watchdog instance.
 //      The timeout value which was set in previous call is overwritten.
-//      Caller should call next watchdog_set or watchdog_close within 
+//      Caller should call next watchdog_set or watchdog_close within
 //      the timeout. Otherwise, the host is reset by the hypervisor.
 //
 //  FORMAL PARAMETERS:
@@ -892,7 +892,7 @@ watchdog_close(
 //      watchdog_handle: handle for the watchdog timer instance.
 //      timeout: timeout value(sec).
 //
-//          
+//
 //  RETURN VALUE:
 //
 //      0 - success
@@ -904,7 +904,7 @@ watchdog_close(
 //
 //
 
-MTC_STATUS 
+MTC_STATUS
 watchdog_set(
     WATCHDOG_HANDLE watchdog_handle,
     MTC_U32 timeout)
@@ -916,9 +916,9 @@ watchdog_set(
 
     check_watchdog_timeout();
 
-    if (w == NULL) 
+    if (w == NULL)
     {
-        log_message(MTC_LOG_WARNING, "WD: (%s) invalid watchdog_handle.\n", __func__);        
+        log_message(MTC_LOG_WARNING, "WD: (%s) invalid watchdog_handle.\n", __func__);
         ret = MTC_ERROR_WD_INVALID_HANDLE;
         goto error_return;
     }
@@ -929,7 +929,7 @@ watchdog_set(
     ret = do_watchdog_hypercall(&(w->id), timeout, w->status);
 
 
-    if (ret != w->status) 
+    if (ret != w->status)
     {
         log_message(MTC_LOG_INFO, "WD: label=%s status changed to %d.\n", w->label, ret);
         if (ret == MTC_SUCCESS)
@@ -946,7 +946,7 @@ watchdog_set(
 
  error_return:
     pthread_mutex_unlock(&watchdog_mutex);
-    return ret; 
+    return ret;
 }
 
 //
@@ -963,7 +963,7 @@ watchdog_set(
 //
 //      None
 //
-//          
+//
 //  RETURN VALUE:
 //
 //      Never returns
@@ -986,13 +986,13 @@ watchdog_selffence(void)
 
     pthread_mutex_lock(&watchdog_mutex);
 
-    if (watchdog_mode != WATCHDOG_MODE_HYPERVISOR) 
+    if (watchdog_mode != WATCHDOG_MODE_HYPERVISOR)
     {
         assert(FALSE);
 
     }
     log_message(MTC_LOG_INFO, "watchdog_selffence.\n");
-    
+
     // Attempt to shutdown domain 0 immediately
     do_domain_shutdown_self(ret);
     // We shouldn't get here but if we do then invoke the watchdog:
@@ -1002,9 +1002,9 @@ watchdog_selffence(void)
         // create instance for fence
         id = 0;
         ret = do_watchdog_hypercall(&id, WD_FENCE, MTC_SUCCESS);
-        if (ret == MTC_SUCCESS) 
+        if (ret == MTC_SUCCESS)
         {
-            log_message(MTC_LOG_INFO, "WD: (%s) id=%d succeeded.\n", __func__, id);        
+            log_message(MTC_LOG_INFO, "WD: (%s) id=%d succeeded.\n", __func__, id);
         }
         else
         {
@@ -1015,13 +1015,13 @@ watchdog_selffence(void)
     for (wdi = 0; wdi < instance_num; wdi++)
     {
         ret = do_watchdog_hypercall(&(instance[wdi]->id), WD_FENCE, MTC_SUCCESS);
-        if (ret == MTC_SUCCESS) 
+        if (ret == MTC_SUCCESS)
         {
-            log_message(MTC_LOG_INFO, "WD: (%s) label=%s id=%d succeeded.\n", __func__, instance[wdi]->label, instance[wdi]->id);        
+            log_message(MTC_LOG_INFO, "WD: (%s) label=%s id=%d succeeded.\n", __func__, instance[wdi]->label, instance[wdi]->id);
         }
         else
         {
-            log_message(MTC_LOG_WARNING, "WD: (%s) label=%s id=%d failed.\n", __func__, instance[wdi]->label, instance[wdi]->id);        
+            log_message(MTC_LOG_WARNING, "WD: (%s) label=%s id=%d failed.\n", __func__, instance[wdi]->label, instance[wdi]->id);
         }
     }
 
