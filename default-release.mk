@@ -11,7 +11,7 @@ OBJDIR=$(SOURCEDIR)/release
 
 INCDIR=$(SOURCEDIR)/include
 INCLUDES=-I$(INCDIR)
-LIBS=-lxml2 -lrt
+LIBS=-lxml2 -lrt -lm
 HALIBS=$(OBJDIR)/libxha.a
 INSDIR=/usr/libexec/xapi/cluster-stack/xhad
 LOGCONFDIR=/etc/logrotate.d
